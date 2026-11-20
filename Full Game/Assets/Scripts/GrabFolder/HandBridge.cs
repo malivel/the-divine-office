@@ -8,6 +8,7 @@ public class HandBridge : MonoBehaviour
 
     EntityManager em;
     Entity handEntity;
+    bool lastGrip;
 
     void OnEnable()
     {
@@ -23,9 +24,21 @@ public class HandBridge : MonoBehaviour
 
     void Update()
     {
+        bool grip = gripAction.action.IsPressed();
+
+        // временная проверка: хват на клавише F
+        if (Keyboard.current != null && Keyboard.current.fKey.isPressed)
+            grip = true;
+
+        if (grip != lastGrip)
+        {
+            Debug.Log("Grip = " + grip);
+            lastGrip = grip;
+        }
+
         var data = em.GetComponentData<HandInput>(handEntity);
         data.Position = transform.position + transform.forward * 0.6f;
-        data.GripPressed = gripAction.action.IsPressed();
+        data.GripPressed = grip;
         em.SetComponentData(handEntity, data);
     }
 }

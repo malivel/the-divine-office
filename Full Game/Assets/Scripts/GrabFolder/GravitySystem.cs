@@ -6,7 +6,7 @@ using Unity.Transforms;
 public partial struct GravitySystem : ISystem
 {
     const float Gravity = 9.81f;
-    const float FloorY = 0.1f; // пол в y=0 плюс половина высоты куба
+    const float FloorY = 8.99f; // пол в y=0 плюс половина высоты куба
 
     [BurstCompile]
     public void OnUpdate(ref SystemState state)

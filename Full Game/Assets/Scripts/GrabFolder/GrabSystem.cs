@@ -5,7 +5,7 @@ using Unity.Transforms;
 [UpdateAfter(typeof(GravitySystem))]
 public partial struct GrabSystem : ISystem
 {
-    const float GrabRadius = 2.5f;
+    const float GrabRadius = 6f;
 
     public void OnCreate(ref SystemState state)
     {
@@ -16,32 +16,44 @@ public partial struct GrabSystem : ISystem
     {
         ref var hand = ref SystemAPI.GetSingletonRW<HandInput>().ValueRW;
 
-        // кнопка отпущена: бросаем то, что держали
         if (!hand.GripPressed)
         {
             hand.Held = Entity.Null;
             return;
         }
 
-        // кнопка зажата, но руки пусты: ищем ближайший кубик
         if (hand.Held == Entity.Null)
         {
             float best = GrabRadius;
+            float nearest = 9999f;
+            int count = 0;
+
             foreach (var (transform, entity) in
                      SystemAPI.Query<RefRO<LocalTransform>>()
                               .WithAll<Weight>()
                               .WithEntityAccess())
             {
+                count++;
                 float d = math.distance(transform.ValueRO.Position, hand.Position);
+                nearest = math.min(nearest, d);
                 if (d < best)
                 {
                     best = d;
                     hand.Held = entity;
                 }
             }
+
+            if (hand.Held == Entity.Null)
+            {
+                UnityEngine.Debug.Log("Не схвачено. Кубиков: " + count +
+                    ", до ближайшего: " + nearest + " м, рука: " + hand.Position);
+            }
+            else
+            {
+                UnityEngine.Debug.Log("Схвачен кубик");
+            }
         }
 
-        // что-то держим: переносим кубик к руке
         if (hand.Held != Entity.Null)
         {
             SystemAPI.GetComponentRW<LocalTransform>(hand.Held).ValueRW.Position = hand.Position;
